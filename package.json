@@ -10,13 +10,13 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/RobertSasak/react-native-openalpr.git",
-        "baseUrl": "https://github.com/RobertSasak/react-native-openalpr"
+        "url": "git+https://gitlab.com/park-smart/mobile/react-native-openalpr.git",
+        "baseUrl": "https://gitlab.com/park-smart/mobile/react-native-openalpr.git"
     },
     "keywords": [
         "react-native"
     ],
-    "homepage": "https://github.com/RobertSasak/react-native-openalpr",
+    "homepage": "https://gitlab.com/park-smart/mobile/react-native-openalpr.git",
     "author": {
         "name": "Evan Rosenfeld, CarDash <www.cardash.com>"
     },
