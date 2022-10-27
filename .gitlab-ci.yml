@@ -1,7 +1,5 @@
 stages:
   - release
-  - build
-  - deploy
 
 default:
   image: node:16
