@@ -60,17 +60,8 @@ public class ReactCameraManager extends SimpleViewManager<FrameLayout> implement
         ICameraView camera = (ICameraView) preview.findViewById(R.id.camera_view);
         camera.setResultsCallback(new ALPR.ResultsCallback() {
             @Override
-            public void onResults(String plate, String confidence, String processingTimeMs, List<Point> coordinates, Bitmap img) {
+            public void onResults(String plate, String confidence, String processingTimeMs, List<Point> coordinates, String imgData) {
                 Log.i(ReactCameraManager.class.getSimpleName(), plate);
-
-
-
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-                img.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-                byte[] byteArray = byteArrayOutputStream.toByteArray();
-
-                String imgData = Base64.encodeToString(byteArray, Base64.DEFAULT);
 
                 WritableMap event = Arguments.createMap();
                 event.putString("plate", plate);

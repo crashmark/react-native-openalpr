@@ -82,10 +82,10 @@ public class ALPRCameraView extends JavaCameraView implements ICameraView {
                 if (callback != null) {
                     ALPR.getInstance().process(rgba, country, rotation, new ALPR.ResultsCallback() {
                         @Override
-                        public void onResults(String plate, String confidence, String processingTimeMs, List<android.graphics.Point> coordinates, Bitmap img) {
+                        public void onResults(String plate, String confidence, String processingTimeMs, List<android.graphics.Point> coordinates, String imgData) {
                             if (getContext() == null) return;
                             ALPRCameraView.this.coordinates = getOpenCVPoints(coordinates);
-                            callback.onResults(plate, confidence, processingTimeMs, coordinates, img);
+                            callback.onResults(plate, confidence, processingTimeMs, coordinates, imgData);
                         }
 
                         @Override

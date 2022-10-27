@@ -77,9 +77,20 @@ public class ALPR {
     }
 
     interface ResultsCallback {
-        void onResults(String plate, String confidence, String processingTimeMs, List<Point> coordinates, Bitmap img);
+        void onResults(String plate, String confidence, String processingTimeMs, List<Point> coordinates, String imgData);
 
         void onFail();
+    }
+
+    public String img2base64(Bitmap img) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        img.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+
+        String imgData = Base64.encodeToString(byteArray, Base64.DEFAULT);
+        return imgData;
+
     }
 
     /**
@@ -108,6 +119,8 @@ public class ALPR {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = 10;
         final Bitmap bm = Bitmap.createBitmap(m.cols(), m.rows(), Bitmap.Config.ARGB_8888);
+
+        String imgData = this.img2base64(bm);
         Utils.matToBitmap(m, bm);
         m.release();
         final File file = saveToInternalStorage(bm, ctx);
@@ -131,13 +144,14 @@ public class ALPR {
                         Log.d(TAG, "It was not possible to detect the licence plate.");
                         callback.onFail();
                     } else {
+
                         Result res0 = results.getResults().get(0);
                         callback.onResults(
                                 res0.getPlate(),
                                 String.format("%.2f", res0.getConfidence()),
                                 String.format("%.2f", ((results.getProcessingTimeMs() / 1000.0) % 60)),
                                 getAndroidPoints(res0.getCoordinates()),
-                                bm);
+                                imgData);
                     }
                     if (isProcessing != null) isProcessing.set(false);
                 }
