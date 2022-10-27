@@ -6,8 +6,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Point;
+import android.graphics.Bitmap;
+
 import androidx.annotation.Nullable;
 import android.util.Log;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -27,6 +30,8 @@ import com.facebook.react.uimanager.events.RCTEventEmitter;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Map;
+import java.io.ByteArrayOutputStream;
+
 
 public class ReactCameraManager extends SimpleViewManager<FrameLayout> implements LifecycleEventListener {
     public static final String TAG = ReactContextBaseJavaModule.class.getSimpleName();
@@ -55,12 +60,23 @@ public class ReactCameraManager extends SimpleViewManager<FrameLayout> implement
         ICameraView camera = (ICameraView) preview.findViewById(R.id.camera_view);
         camera.setResultsCallback(new ALPR.ResultsCallback() {
             @Override
-            public void onResults(String plate, String confidence, String processingTimeMs, List<Point> coordinates) {
+            public void onResults(String plate, String confidence, String processingTimeMs, List<Point> coordinates, Bitmap img) {
                 Log.i(ReactCameraManager.class.getSimpleName(), plate);
+
+
+
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+                img.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+                byte[] byteArray = byteArrayOutputStream.toByteArray();
+
+                String imgData = Base64.encodeToString(byteArray, Base64.DEFAULT);
+
                 WritableMap event = Arguments.createMap();
                 event.putString("plate", plate);
                 event.putString("confidence", confidence);
                 event.putString("processingTimeMs", processingTimeMs);
+                event.putString("imgData", imgData);
                 ReactContext reactContext = context;
                 reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(
                         preview.getId(),

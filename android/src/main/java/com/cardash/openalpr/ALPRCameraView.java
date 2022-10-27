@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.pm.ActivityInfo;
 import android.graphics.Rect;
+import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.hardware.Camera.Area;
 import android.hardware.Camera.Parameters;
@@ -81,10 +82,10 @@ public class ALPRCameraView extends JavaCameraView implements ICameraView {
                 if (callback != null) {
                     ALPR.getInstance().process(rgba, country, rotation, new ALPR.ResultsCallback() {
                         @Override
-                        public void onResults(String plate, String confidence, String processingTimeMs, List<android.graphics.Point> coordinates) {
+                        public void onResults(String plate, String confidence, String processingTimeMs, List<android.graphics.Point> coordinates, Bitmap img) {
                             if (getContext() == null) return;
                             ALPRCameraView.this.coordinates = getOpenCVPoints(coordinates);
-                            callback.onResults(plate, confidence, processingTimeMs, coordinates);
+                            callback.onResults(plate, confidence, processingTimeMs, coordinates, img);
                         }
 
                         @Override

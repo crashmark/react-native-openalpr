@@ -9,6 +9,7 @@ import android.graphics.Point;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
 
@@ -76,7 +77,7 @@ public class ALPR {
     }
 
     interface ResultsCallback {
-        void onResults(String plate, String confidence, String processingTimeMs, List<Point> coordinates);
+        void onResults(String plate, String confidence, String processingTimeMs, List<Point> coordinates, Bitmap img);
 
         void onFail();
     }
@@ -106,10 +107,10 @@ public class ALPR {
         // create file in internal memory for passing to openalpr
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = 10;
-        Bitmap bm = Bitmap.createBitmap(m.cols(), m.rows(), Bitmap.Config.ARGB_8888);
+        final Bitmap bm = Bitmap.createBitmap(m.cols(), m.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(m, bm);
         m.release();
-        File file = saveToInternalStorage(bm, ctx);
+        final File file = saveToInternalStorage(bm, ctx);
         if (file == null) {
             finishExecution(ctx, callback);
             return;
@@ -120,6 +121,7 @@ public class ALPR {
 
         // deliver results to main thread
         Handler handler = new Handler(ctx.getMainLooper());
+
         try {
             final Results results = new Gson().fromJson(result, Results.class);
             handler.post(new Runnable() {
@@ -134,7 +136,8 @@ public class ALPR {
                                 res0.getPlate(),
                                 String.format("%.2f", res0.getConfidence()),
                                 String.format("%.2f", ((results.getProcessingTimeMs() / 1000.0) % 60)),
-                                getAndroidPoints(res0.getCoordinates()));
+                                getAndroidPoints(res0.getCoordinates()),
+                                bm);
                     }
                     if (isProcessing != null) isProcessing.set(false);
                 }

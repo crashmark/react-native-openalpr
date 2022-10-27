@@ -1,5 +1,5 @@
 {
-    "name": "react-native-openalpr",
+    "name": "@park-smart/react-native-openalpr",
     "title": "React Native Openalpr",
     "version": "2.2.0",
     "description": "Open ALRP component for React Native",
@@ -26,5 +26,9 @@
     "peerDependencies": {
         "react": "^16.8.3",
         "react-native": "^0.60.0"
+    },
+    "publishConfig": {
+        "access": "restricted",
+        "@park-smart:registry": "https://gitlab.com/api/v4/projects/40514439/packages/npm/"
     }
 }
