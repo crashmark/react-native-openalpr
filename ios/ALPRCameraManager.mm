@@ -297,61 +297,13 @@ RCT_EXPORT_METHOD(takePicture:(NSDictionary *)options
     return [array objectAtIndex:0];
 }
 
-- (UIImage *) imageFromSampleBuffer:(CMSampleBufferRef) sampleBuffer
-{
-    // Get a CMSampleBuffer's Core Video image buffer for the media data
-    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
-    
-    // Lock the base address of the pixel buffer
-    CVPixelBufferLockBaseAddress(imageBuffer, 0);
-    
-    // Get the number of bytes per row for the pixel buffer
-    void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);
-    
-    // Get the number of bytes per row for the pixel buffer
-    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(imageBuffer);
-    
-    // Get the pixel buffer width and height
-    size_t width = CVPixelBufferGetWidth(imageBuffer);
-    size_t height = CVPixelBufferGetHeight(imageBuffer);
-    
-    NSLog(@"w: %zu h: %zu bytesPerRow:%zu", width, height, bytesPerRow);
-    
-    // Create a device-dependent RGB color space
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    
-    // Create a bitmap graphics context with the sample buffer data
-    CGContextRef context = CGBitmapContextCreate(baseAddress,
-                             width,
-                             height,
-                             8,
-                             bytesPerRow,
-                             colorSpace,
-                             kCGBitmapByteOrder32Little
-                             | kCGImageAlphaPremultipliedFirst);
-    // Create a Quartz image from the pixel data in the bitmap graphics context
-    CGImageRef quartzImage = CGBitmapContextCreateImage(context);
-    // Unlock the pixel buffer
-    CVPixelBufferUnlockBaseAddress(imageBuffer,0);
-    
-    // Free up the context and color space
-    CGContextRelease(context);
-    CGColorSpaceRelease(colorSpace);
-    
-    // Create an image object from the Quartz image
-    //UIImage *image = [UIImage imageWithCGImage:quartzImage];
-    UIImage *image = [UIImage imageWithCGImage:quartzImage
-                              scale:1.0f
-                            orientation:UIImageOrientationRight];
-    
-    // Release the Quartz image
-    CGImageRelease(quartzImage);
-    
-    return (image);
-}
-
-- (NSString *)encodeToBase64String:(UIImage *)image {
- return [UIImagePNGRepresentation(image) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+- (NSString *)encodeToBase64String:(NSData *)image {
+    // NSData *png = UIImagePNGRepresentation(image);
+    NSString *str = [image base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+    if (str != nil) {
+        return str;
+    }
+    return @"";
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
@@ -364,7 +316,7 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
         self.isProcessingFrame = YES;
         
         CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
-        NSString * imgData = [self encodeToBase64String:[self imageFromSampleBuffer:sampleBuffer]];
+        
         CVPixelBufferLockBaseAddress(imageBuffer, 0);
         
         // Y_PLANE
@@ -378,6 +330,13 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
         int numChannels = 1;
         
         cv::Mat src = cv::Mat(cvSize((int)width, (int)height), CV_8UC(numChannels), planeBaseAddress, (int)bytesPerRow);
+        
+        NSData *data = [NSData dataWithBytes:src.data length:src.step.p[0]*src.rows];
+        
+        
+        NSString *imgData = [self encodeToBase64String:data];
+        
+        
         int rotate = 0;
         if (deviceOrientation == UIDeviceOrientationPortrait) {
             rotate = 1;
@@ -507,7 +466,7 @@ didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
     self.camera = nil;
     return;
 #endif
-    // Make sure that we are on the main thread when we are 
+    // Make sure that we are on the main thread when we are
     // ending the session, otherwise we may get an exception:
     // Fatal Exception: NSGenericException
     // *** Collection <CALayerArray: 0x282781230> was mutated while being enumerated.
