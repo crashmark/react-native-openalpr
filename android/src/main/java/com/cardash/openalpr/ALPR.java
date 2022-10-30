@@ -27,11 +27,15 @@ import org.opencv.core.Mat;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import android.util.Base64;
 
 public class ALPR {
     private static final String TAG = ALPR.class.getSimpleName();
@@ -39,10 +43,20 @@ public class ALPR {
     private Handler mHandler = null;
     private AtomicBoolean isProcessing = new AtomicBoolean(false);
 
+    private static String ITALIAN_LICENSEPLATE_REGEX = "[A-Z]{2}[0-9]{3}[A-Z]{2}";
+    private static String ITALIAN_OLD_LICENSEPLATE_REGEX = "[A-Z]{2}[0-9]{5,6}";
+
+    private static String FRENCH_LICENSEPLATE_REGEX = "(?=.*[1-9].*)((?!SS)[AHJ-NPR-UW-Z]{2})\\-[0-9]{3}\\-[AHJ-NPR-UW-Z]{2}";
+
+    private static String UK_LICENSEPLATE_REGEX = "([A-Z]{3}\\s?(\\d{3}|\\d{2}|d{1})\\s?[A-Z])|([A-Z]\\s?(\\d{3}|\\d{2}|\\d{1})\\s?[A-Z]{3})|(([A-HK-PRSVWY][A-HJ-PR-Y])\\s?([0][2-9]|[1-9][0-9])\\s?[A-HJ-PR-Z]{3})";
+
+    private static List<Pattern> rxs = new ArrayList<>();
+
     /**
      * constructor for initialization message handling on separate thread
      */
     private ALPR() {
+
         HandlerThread handlerThread = new HandlerThread("HandlerThread");
         handlerThread.start();
         mHandler = new Handler(handlerThread.getLooper()) {
@@ -72,6 +86,11 @@ public class ALPR {
     static ALPR getInstance() {
         if (instance == null) {
             instance = new ALPR();
+
+            rxs.add(Pattern.compile(ITALIAN_LICENSEPLATE_REGEX, Pattern.CASE_INSENSITIVE));
+            rxs.add(Pattern.compile(ITALIAN_OLD_LICENSEPLATE_REGEX, Pattern.CASE_INSENSITIVE));
+            rxs.add(Pattern.compile(FRENCH_LICENSEPLATE_REGEX, Pattern.CASE_INSENSITIVE));
+            rxs.add(Pattern.compile(UK_LICENSEPLATE_REGEX, Pattern.CASE_INSENSITIVE));
         }
         return instance;
     }
@@ -91,6 +110,11 @@ public class ALPR {
         String imgData = Base64.encodeToString(byteArray, Base64.DEFAULT);
         return imgData;
 
+    }
+
+    private boolean validateLicensePlate(String licensePlate) {
+        for (Pattern rx : instance.rxs) if (rx.matcher(licensePlate).matches()) return true;
+        return false;
     }
 
     /**
@@ -119,8 +143,6 @@ public class ALPR {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inSampleSize = 10;
         final Bitmap bm = Bitmap.createBitmap(m.cols(), m.rows(), Bitmap.Config.ARGB_8888);
-
-        String imgData = this.img2base64(bm);
         Utils.matToBitmap(m, bm);
         m.release();
         final File file = saveToInternalStorage(bm, ctx);
@@ -144,8 +166,17 @@ public class ALPR {
                         Log.d(TAG, "It was not possible to detect the licence plate.");
                         callback.onFail();
                     } else {
-
                         Result res0 = results.getResults().get(0);
+
+                        String plate = res0.getPlate();
+
+
+                        String imgData = "";
+                        if(instance.validateLicensePlate(plate)) {
+                            imgData = instance.img2base64(bm);
+                        }
+
+
                         callback.onResults(
                                 res0.getPlate(),
                                 String.format("%.2f", res0.getConfidence()),
