@@ -89,8 +89,8 @@ public class ALPR {
 
             rxs.add(Pattern.compile(ITALIAN_LICENSEPLATE_REGEX, Pattern.CASE_INSENSITIVE));
             rxs.add(Pattern.compile(ITALIAN_OLD_LICENSEPLATE_REGEX, Pattern.CASE_INSENSITIVE));
-            rxs.add(Pattern.compile(FRENCH_LICENSEPLATE_REGEX, Pattern.CASE_INSENSITIVE));
-            rxs.add(Pattern.compile(UK_LICENSEPLATE_REGEX, Pattern.CASE_INSENSITIVE));
+            // rxs.add(Pattern.compile(FRENCH_LICENSEPLATE_REGEX, Pattern.CASE_INSENSITIVE));
+            // rxs.add(Pattern.compile(UK_LICENSEPLATE_REGEX, Pattern.CASE_INSENSITIVE));
         }
         return instance;
     }
