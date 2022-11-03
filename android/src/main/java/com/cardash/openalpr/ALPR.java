@@ -174,15 +174,16 @@ public class ALPR {
                         String imgData = "";
                         if(instance.validateLicensePlate(plate)) {
                             imgData = instance.img2base64(bm);
+
+
+
+                            callback.onResults(
+                                    res0.getPlate(),
+                                    String.format("%.2f", res0.getConfidence()),
+                                    String.format("%.2f", ((results.getProcessingTimeMs() / 1000.0) % 60)),
+                                    getAndroidPoints(res0.getCoordinates()),
+                                    imgData);
                         }
-
-
-                        callback.onResults(
-                                res0.getPlate(),
-                                String.format("%.2f", res0.getConfidence()),
-                                String.format("%.2f", ((results.getProcessingTimeMs() / 1000.0) % 60)),
-                                getAndroidPoints(res0.getCoordinates()),
-                                imgData);
                     }
                     if (isProcessing != null) isProcessing.set(false);
                 }
