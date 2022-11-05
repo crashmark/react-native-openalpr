@@ -1,7 +1,7 @@
 {
     "name": "@park-smart/react-native-openalpr",
     "title": "React Native Openalpr",
-    "version": "2.4.2",
+    "version": "2.4.3",
     "description": "Open ALRP component for React Native",
     "main": "index.js",
     "scripts": {
